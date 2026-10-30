@@ -1,0 +1,10 @@
+# Installed by coder-pipeline from YPGOC/.github (fleet standard). Do not edit; change the reusable workflows instead.
+name: policy
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, labeled, unlabeled]
+jobs:
+  pr-policy:
+    uses: YPGOC/.github/.github/workflows/pr-policy.yml@main
+  secret-scan:
+    uses: YPGOC/.github/.github/workflows/secret-scan.yml@main
