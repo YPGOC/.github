@@ -1,0 +1,19 @@
+name: Bug
+description: Something is broken
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: what
+    attributes: {label: What is wrong, description: "Observed vs expected behaviour"}
+    validations: {required: true}
+  - type: textarea
+    id: repro
+    attributes: {label: How to reproduce / evidence, description: "Steps, logs, URLs (no secrets)"}
+    validations: {required: true}
+  - type: textarea
+    id: accept
+    attributes: {label: Acceptance criteria, description: "How we know it is fixed (testable)"}
+    validations: {required: true}
+  - type: input
+    id: deps
+    attributes: {label: Blocked by, description: "repo#N, or 'none'"}

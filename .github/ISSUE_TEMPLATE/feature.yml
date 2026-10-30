@@ -1,0 +1,19 @@
+name: Feature
+description: New capability or behaviour change
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: why
+    attributes: {label: Why / who benefits}
+    validations: {required: true}
+  - type: textarea
+    id: what
+    attributes: {label: What should exist when done}
+    validations: {required: true}
+  - type: textarea
+    id: accept
+    attributes: {label: Acceptance criteria, description: "Testable bullet list"}
+    validations: {required: true}
+  - type: input
+    id: deps
+    attributes: {label: Blocked by, description: "repo#N, or 'none'"}

@@ -1,0 +1,34 @@
+# Reusable PR policy. Call from a repo with:
+#   jobs:
+#     policy:
+#       uses: YPGOC/.github/.github/workflows/pr-policy.yml@main
+name: pr-policy
+on:
+  workflow_call:
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR body
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          fail=0
+          if ! printf '%s' "$BODY" | grep -Eqi '(^|[^a-z])(closes|fixes|resolves) +([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+'; then
+            if ! printf '%s' "$LABELS" | grep -Eq '(^|,)trivial(,|$)'; then
+              echo "::error::PR must say 'Closes #N' or carry the 'trivial' label"; fail=1
+            fi
+          fi
+          if ! printf '%s' "$BODY" | grep -Eq '^Run: *[^ <]+'; then
+            echo "::error::PR body needs a 'Run: <repo>#<issue>.r<n>' line"; fail=1
+          fi
+          for h in Tests Risk Rollback; do
+            if ! printf '%s' "$BODY" | grep -Eq "^## +$h"; then
+              echo "::error::PR body needs a '## $h' section"; fail=1
+            fi
+          done
+          exit $fail

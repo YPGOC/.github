@@ -1,0 +1,16 @@
+name: Security
+description: Security finding or hardening (do NOT paste secrets or exploit details; use a private channel for those)
+labels: ["type:security"]
+body:
+  - type: textarea
+    id: what
+    attributes: {label: Finding (no secret values), description: "Where, what class of problem, impact"}
+    validations: {required: true}
+  - type: textarea
+    id: fix
+    attributes: {label: Proposed fix / rotation needed}
+    validations: {required: true}
+  - type: textarea
+    id: accept
+    attributes: {label: Acceptance criteria}
+    validations: {required: true}

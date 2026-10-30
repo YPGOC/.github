@@ -1,0 +1,15 @@
+name: Task
+description: Maintenance, refactor, docs or other planned work
+labels: ["type:task"]
+body:
+  - type: textarea
+    id: what
+    attributes: {label: What needs doing}
+    validations: {required: true}
+  - type: textarea
+    id: accept
+    attributes: {label: Acceptance criteria}
+    validations: {required: true}
+  - type: input
+    id: deps
+    attributes: {label: Blocked by, description: "repo#N, or 'none'"}
