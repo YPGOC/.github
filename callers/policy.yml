@@ -3,6 +3,9 @@ name: policy
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize, labeled, unlabeled]
+permissions:
+  contents: read
+  pull-requests: read
 jobs:
   pr-policy:
     uses: YPGOC/.github/.github/workflows/pr-policy.yml@main
