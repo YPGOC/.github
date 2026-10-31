@@ -23,7 +23,7 @@ Plain `gh pr merge` is refused by the default-branch ruleset; only the org-admin
 End each work report with one line: `WORKING repo#N` / `DONE repo#N pr#M` / `BLOCKED repo#N <reason>` / `NEEDS-YOGI repo#N`.
 
 ## Labels
-Identical on every repo (source: `labels/labels.json` in this repo): `type:*`, `trivial`, `P0`-`P3`, `blocked`, `needs-yogi`, `owner:unassigned`, plus `agent:<name>` created per repo as needed.
+Identical on every repo (source: `labels/labels.json` in this repo): `type:*` (bug, feature, task, security, ux), `trivial`, `P0`-`P3`, `blocked`, `needs-yogi`, `owner:unassigned`, plus `agent:<name>` created per repo as needed.
 
 ## Secrets
 Never commit secrets, tokens or `.env` files. A secret scan runs on every PR. If one leaks: rotate first, then clean history.

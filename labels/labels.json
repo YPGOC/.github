@@ -1,14 +1,67 @@
 [
- {"name":"type:bug","color":"d73a4a","description":"Something is broken"},
- {"name":"type:feature","color":"a2eeef","description":"New capability"},
- {"name":"type:task","color":"c5def5","description":"Maintenance / planned work"},
- {"name":"type:security","color":"b60205","description":"Security finding or hardening"},
- {"name":"trivial","color":"ededed","description":"Docs/maintenance PR without an issue"},
- {"name":"P0","color":"b60205","description":"Drop everything"},
- {"name":"P1","color":"d93f0b","description":"Next up"},
- {"name":"P2","color":"fbca04","description":"Normal"},
- {"name":"P3","color":"0e8a16","description":"Someday"},
- {"name":"blocked","color":"5319e7","description":"Waiting on another issue"},
- {"name":"needs-yogi","color":"e99695","description":"Decision only Yogi can make"},
- {"name":"owner:unassigned","color":"cccccc","description":"No head dev owns this yet"}
+ {
+  "name": "type:bug",
+  "color": "d73a4a",
+  "description": "Something is broken"
+ },
+ {
+  "name": "type:feature",
+  "color": "a2eeef",
+  "description": "New capability"
+ },
+ {
+  "name": "type:task",
+  "color": "c5def5",
+  "description": "Maintenance / planned work"
+ },
+ {
+  "name": "type:security",
+  "color": "b60205",
+  "description": "Security finding or hardening"
+ },
+ {
+  "name": "type:ux",
+  "color": "d4c5f9",
+  "description": "UI/UX problem or improvement"
+ },
+ {
+  "name": "trivial",
+  "color": "ededed",
+  "description": "Docs/maintenance PR without an issue"
+ },
+ {
+  "name": "P0",
+  "color": "b60205",
+  "description": "Drop everything"
+ },
+ {
+  "name": "P1",
+  "color": "d93f0b",
+  "description": "Next up"
+ },
+ {
+  "name": "P2",
+  "color": "fbca04",
+  "description": "Normal"
+ },
+ {
+  "name": "P3",
+  "color": "0e8a16",
+  "description": "Someday"
+ },
+ {
+  "name": "blocked",
+  "color": "5319e7",
+  "description": "Waiting on another issue"
+ },
+ {
+  "name": "needs-yogi",
+  "color": "e99695",
+  "description": "Decision only Yogi can make"
+ },
+ {
+  "name": "owner:unassigned",
+  "color": "cccccc",
+  "description": "No head dev owns this yet"
+ }
 ]
