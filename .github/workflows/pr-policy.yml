@@ -18,7 +18,7 @@ jobs:
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
         run: |
           fail=0
-          PART='^Part of #[0-9]+ — Run: ([A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+(-a|\.A)[0-9]+[[:space:]]*$'
+          PART='^Part of #[0-9]+ — Run: ([A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+(-a|-p|\.A)[0-9]+[[:space:]]*$'
           part=0
           printf '%s' "$BODY" | grep -Eq "$PART" && part=1
           if [ $part = 0 ] && ! printf '%s' "$BODY" | grep -Eqi '(^|[^a-z])(closes|fixes|resolves) +([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+'; then
