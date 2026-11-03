@@ -21,7 +21,7 @@ Plain `gh pr merge` is refused by the default-branch ruleset; only the org-admin
 `--admin` is no longer needed for a clean PR (the fleet-restrict-updates ruleset was dropped 2026-11-03: it blocked every merge). It does NOT bypass required status checks or the pr-policy check. If checks are red, fix them; do not look for another way in.
 
 ## Merge trains (tail-green)
-A train (several PRs merged in sequence) is DONE only when CI is green on the final combined head of the default branch, not when each PR was green on its own head. Report `DONE ... tail-green: <run url> @<sha>`. Optional GitHub merge queue: `rulesets/option-merge-queue.json` (public repos only on our plan; workflows must also trigger on `merge_group`). Wording owned by coder-architect.
+A train (several PRs merged in sequence) is DONE only when CI is green on the final combined head of the default branch, not when each PR was green on its own head. Report `DONE ... tail-green: <run url> @<sha>`. Wording owned by coder-architect.
 
 ## Status line (agents)
 End each work report with one line: `WORKING repo#N` / `DONE repo#N pr#M` / `BLOCKED repo#N <reason>` / `NEEDS-YOGI repo#N`.
