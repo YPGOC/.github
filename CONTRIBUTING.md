@@ -8,7 +8,7 @@
 
 ## Branches and PRs
 - Never push to the default branch (rulesets refuse it). Work on a branch, open a PR.
-- A PR that implements one sub-item of a multi-sub plan must not close the parent: use the single line `Part of #N — Run: <repo>#N.r<K>.A<n>` instead of `Closes #N` + `Run:` (exact form, em dash). The planner/head dev closes #N when the last sub-item merges.
+- A PR that implements one sub-item of a multi-sub plan must not close the parent: use the single line `Part of #N — Run: <repo>#N.r<K>-a<n>` instead of `Closes #N` + `Run:` (exact form, em dash). The planner/head dev closes #N when the last sub-item merges.
 - PR body follows the template: `Closes #N` (or `trivial`), `Run: <repo>#<issue>.r<n>`, `## Tests`, `## Risk`, `## Rollback`. The `pr-policy` check enforces this.
 - Required checks must be green. A repo's CI becomes a required check once it is green on the default branch.
 - No force pushes, no branch deletion on the default branch, no bypassing checks.
