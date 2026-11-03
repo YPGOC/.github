@@ -13,6 +13,7 @@ chk(){ BODY="$2" LABELS="${3:-}" bash /tmp/prp-run.sh >/dev/null 2>&1; r=$?
   if { [ "$1" = pass ] && [ $r = 0 ]; } || { [ "$1" = fail ] && [ $r != 0 ]; }; then echo ok; else echo "FAIL: $4"; bad=1; fi; }
 bad=0
 chk pass "Part of #27 — Run: agents#27.r1.A1$T" "" "part-of valid"
+chk pass "Part of #27 — Run: YPGOC/agents#27.r1.A1$T" "" "owner prefix"
 chk fail "Part of #27$T" "" "part-of without Run id"
 chk fail "Part of #27 — Run: agents#27.r1$T" "" "part-of without .A<n>"
 chk fail "Part of #27 — Run: agents#27.r1.A1 extra$T" "" "trailing junk"
