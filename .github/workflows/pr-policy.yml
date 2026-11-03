@@ -18,12 +18,15 @@ jobs:
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
         run: |
           fail=0
-          if ! printf '%s' "$BODY" | grep -Eqi '(^|[^a-z])(closes|fixes|resolves) +([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+'; then
+          PART='^Part of #[0-9]+ — Run: [A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+\.A[0-9]+[[:space:]]*$'
+          part=0
+          printf '%s' "$BODY" | grep -Eq "$PART" && part=1
+          if [ $part = 0 ] && ! printf '%s' "$BODY" | grep -Eqi '(^|[^a-z])(closes|fixes|resolves) +([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+'; then
             if ! printf '%s' "$LABELS" | grep -Eq '(^|,)trivial(,|$)'; then
-              echo "::error::PR must say 'Closes #N' or carry the 'trivial' label"; fail=1
+              echo "::error::PR must say 'Closes #N', 'Part of #N — Run: <repo>#N.r<K>.A<n>', or carry the 'trivial' label"; fail=1
             fi
           fi
-          if ! printf '%s' "$BODY" | grep -Eq '^Run: *[^ <]+'; then
+          if [ $part = 0 ] && ! printf '%s' "$BODY" | grep -Eq '^Run: *[^ <]+'; then
             echo "::error::PR body needs a 'Run: <repo>#<issue>.r<n>' line"; fail=1
           fi
           for h in Tests Risk Rollback; do
