@@ -17,7 +17,7 @@ Plain `gh pr merge` is refused by the default-branch ruleset; only the org-admin
 
     gh pr merge <N> --squash --admin
 
-`--admin` bypasses the "who may update" restriction only; it does NOT bypass required status checks or the pr-policy check. If checks are red, fix them; do not look for another way in.
+`--admin` is no longer needed for a clean PR (the fleet-restrict-updates ruleset was dropped 2026-11-03: it blocked every merge). It does NOT bypass required status checks or the pr-policy check. If checks are red, fix them; do not look for another way in.
 
 ## Status line (agents)
 End each work report with one line: `WORKING repo#N` / `DONE repo#N pr#M` / `BLOCKED repo#N <reason>` / `NEEDS-YOGI repo#N`.
