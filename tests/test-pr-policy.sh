@@ -30,4 +30,15 @@ chk pass "Closes #5
 Run: agents#5.r1$T" "" "closes still ok"
 chk fail "Run: agents#5.r1$T" "" "no closes/part-of"
 chk fail "Part of #27 — Run: agents#27.r1-a1" "" "missing sections"
+chk pass "Part of YPGOC/fleet-ops#65 — Run: YPGOC/fleet-ops#65.r1$T" "" "cross-repo with owner (agents#178 shape)"
+chk pass "Part of fleet-ops#65
+Run: fleet-ops#65.r1$T" "" "cross-repo bare repo + Run line"
+chk pass "Part of YPGOC/fleet-ops#73 (re-render)
+Run: YPGOC/fleet-ops#73.r1$T" "" "cross-repo with trailing text"
+chk fail "Part of YPGOC/fleet-ops#65$T" "" "cross-repo without Run line"
+chk fail "Part of OTHER/fleet-ops#65
+Run: x#65.r1$T" "" "foreign owner"
+chk fail "Part of fleet-ops#65 — Run: fleet-ops#65.r1" "" "cross-repo missing sections"
+chk fail "see Part of fleet-ops#65
+Run: fleet-ops#65.r1$T" "" "cross-repo not line-anchored"
 exit $bad

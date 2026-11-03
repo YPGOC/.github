@@ -21,9 +21,15 @@ jobs:
           PART='^Part of #[0-9]+ — Run: ([A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+(-a|-p|\.A)[0-9]+[[:space:]]*$'
           part=0
           printf '%s' "$BODY" | grep -Eq "$PART" && part=1
-          if [ $part = 0 ] && ! printf '%s' "$BODY" | grep -Eqi '(^|[^a-z])(closes|fixes|resolves) +([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+'; then
+          # cross-repo link: 'Part of [YPGOC/]<repo>#N' (issue lives in another org repo); needs its own 'Run:' line below
+          XREPO='^Part of (YPGOC/)?[A-Za-z0-9_.-]+#[0-9]+([[:space:]].*)?$'
+          XRUN='^Part of (YPGOC/)?[A-Za-z0-9_.-]+#[0-9]+ — Run: ([A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+((-a|-p|\.A)[0-9]+)?[[:space:]]*$'
+          xrepo=0
+          printf '%s' "$BODY" | grep -Eq "$XRUN" && part=1
+          printf '%s' "$BODY" | grep -Eq "$XREPO" && xrepo=1
+          if [ $part = 0 ] && [ $xrepo = 0 ] && ! printf '%s' "$BODY" | grep -Eqi '(^|[^a-z])(closes|fixes|resolves) +([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+'; then
             if ! printf '%s' "$LABELS" | grep -Eq '(^|,)trivial(,|$)'; then
-              echo "::error::PR must say 'Closes #N', 'Part of #N — Run: <repo>#N.r<K>-a<n>', or carry the 'trivial' label"; fail=1
+              echo "::error::PR must say 'Closes #N', 'Part of #N — Run: <repo>#N.r<K>-a<n>', 'Part of [YPGOC/]<repo>#N' (cross-repo, plus a Run: line), or carry the 'trivial' label"; fail=1
             fi
           fi
           if [ $part = 0 ] && ! printf '%s' "$BODY" | grep -Eq '^Run: *[^ <]+'; then
