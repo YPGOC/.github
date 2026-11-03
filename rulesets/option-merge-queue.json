@@ -1,0 +1,13 @@
+{
+ "_comment": "OPTIONAL add-on (fleet-ops#56), not applied anywhere. Merge this rule object into a repo's default-branch ruleset 'rules' array. Prereqs: (1) every required check's workflow must also trigger on `merge_group` (add `merge_group:` next to `pull_request:`), else queued PRs wait forever; (2) plan: GitHub merge queue on PRIVATE repos needs Enterprise Cloud - YPGOC is on the Team plan, so this works today only on public repos. Check the repo's Settings > Rules before applying; do not buy a plan for it. (3) Squash only, so keep allowed_merge_methods [squash] in the pull_request rule. Tail-green: a train's DONE needs CI green on the FINAL combined head (the commit the queue merges), not on each PR's own head - see CONTRIBUTING 'Merge trains'.",
+ "type": "merge_queue",
+ "parameters": {
+  "check_response_timeout_minutes": 60,
+  "grouping_strategy": "ALLGREEN",
+  "max_entries_to_build": 5,
+  "max_entries_to_merge": 5,
+  "merge_method": "SQUASH",
+  "min_entries_to_merge": 1,
+  "min_entries_to_merge_wait_minutes": 5
+ }
+}
