@@ -1,0 +1,12 @@
+name: verdict-gate-sync
+on:
+  pull_request:
+    paths: ['scripts/verdict_gate.py', '.github/workflows/verdict-gate.yml', 'scripts/build-verdict-gate.sh']
+permissions:
+  contents: read
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/build-verdict-gate.sh --check

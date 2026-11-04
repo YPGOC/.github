@@ -44,7 +44,7 @@ def lint(text):
     return errs
 
 # ---- rules ----
-DOC = re.compile(r'(\.md$|\.rst$|\.txt$|^docs?/|^\.github/|(^|/)tests?/|(^|/)test_[^/]*$|_test\.\w+$|\.test\.\w+$|\.lock$|package-lock\.json$|\.gitignore$|^LICENSE)')
+DOC = re.compile(r'((^|/)\.codemap/|\.md$|\.rst$|\.txt$|^docs?/|^\.github/|(^|/)tests?/|(^|/)test_[^/]*$|_test\.\w+$|\.test\.\w+$|\.lock$|package-lock\.json$|\.gitignore$|^LICENSE)')
 MIG = re.compile(r'(^|/)migrations/.+\.(py|sql)$')
 def product_lines(files):
     return sum(f["additions"] + f["deletions"] for f in files if not DOC.search(f["filename"]))
