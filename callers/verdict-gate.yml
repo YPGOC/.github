@@ -1,0 +1,26 @@
+# Installed by coder-pipeline from YPGOC/.github (fleet standard). Do not edit; change the reusable workflow instead.
+name: verdict-gate
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  pull_request_target:   # dependabot PRs only (their pull_request token is read-only)
+    types: [opened, reopened, synchronize]
+  issue_comment:
+    types: [created, edited]
+  pull_request_review:
+    types: [submitted, edited]
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+  statuses: write
+jobs:
+  gate:
+    if: >-
+      (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]') ||
+      (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request) ||
+      github.event_name == 'pull_request_review'
+    uses: YPGOC/.github/.github/workflows/verdict-gate.yml@main
+    with:
+      pr: ${{ github.event.pull_request.number || github.event.issue.number }}
