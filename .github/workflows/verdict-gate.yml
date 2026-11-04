@@ -7,7 +7,7 @@ on:
   workflow_call:
     inputs:
       runs-on:
-        description: 'JSON runner label(s); default self-hosted org runners. Public repos pass "ubuntu-latest".'
+        description: 'Runner label: JSON list or bare string; default self-hosted org runners. Public repos pass ubuntu-latest (bare string or JSON list).'
         required: false
         type: string
         default: '["self-hosted","ypgoc-ci"]'
@@ -21,7 +21,7 @@ permissions:
   statuses: write
 jobs:
   eval:
-    runs-on: ${{ fromJSON(inputs.runs-on) }}
+    runs-on: ${{ startsWith(inputs.runs-on, '[') && fromJSON(inputs.runs-on) || inputs.runs-on }}
     steps:
       - name: Evaluate verdicts
         env:
