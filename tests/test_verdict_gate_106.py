@@ -29,20 +29,25 @@ def run(comments, compares, files=PRFILES, head=H):
 CHANGES = ("2026-11-05T01:57:00Z", f"Verdict: CHANGES (Opus final review, head {S})\n1. defect at inbound_email/intake.py:94\n")
 QA = ("2026-11-05T02:03:00Z", f"QA REPORT YPGOC/x#7 @ {H}\nVerdict: PASS\nRan:      `pytest inbound_email` -> 12 passed\nCheck inbound_email/intake.py:543\n")
 DC = ("2026-11-05T02:01:00Z", f"DIFF-CHECK (fix of Opus CHANGES, head {H})\n" + CITED)
-AHEAD = {"status": "ahead", "files": [f("inbound_email/intake.py", 14, 1), f("inbound_email/tests/test_a.py", 3, 0)]}
+MIGP0 = P(300, 0, "m")
+def pf(intake_patch, extra=()): return {"files": [f("app/migrations/0001_x.py", 300, 0, "added", MIGP0), f("inbound_email/intake.py", 200, 40, patch=intake_patch)] + list(extra)}
+def per(h_patch, extra=()):  # per-file compares (fleet-ops#86.r3: ahead no longer uses raw S...H files)
+    return {f"{S}...{H}": {"status": "ahead", "files": [f("other/base_change.py", 900, 0)]}, f"main...{S}": pf(P(200, 40)), f"main...{H}": pf(h_patch, extra)}
+def dpatch(n): return "@@ -1 +1 @@\n" + "\n".join(l for l in P(200, 40).splitlines()[1:]) + "\n" + "\n".join("+z%d" % i for i in range(n))
+AHEAD = per(dpatch(15))
 def check(n, c, info=""):
     global ok
     if not c: print("FAIL", n, "|", info); sys.exit(1)
     ok += 1; print("ok", n)
-o = run([CHANGES, DC, QA], {f"{S}...{H}": AHEAD}); check("#607 replay: CHANGES + diff-check (15 lines) + QA PASS at head -> success", " success:" in o and "diff-check" in o and "15 product" in o, o)
-o = run([CHANGES, QA], {f"{S}...{H}": AHEAD}); check("no diff-check -> still failure (gate was right to ask)", " failure:" in o and "no 'PASS (Opus final review" in o, o)
-big = {"status": "ahead", "files": [f("inbound_email/intake.py", 25, 10)]}
-o = run([CHANGES, DC, QA], {f"{S}...{H}": big}); check("fix 35 lines -> new Opus pass required", " failure:" in o and ">30" in o, o)
-newf = {"status": "ahead", "files": [f("inbound_email/intake.py", 3, 1), f("inbound_email/newmod.py", 5, 0, "added")]}
-o = run([CHANGES, DC, QA], {f"{S}...{H}": newf}, PRFILES + [f("inbound_email/newmod.py", 5, 0, "added")]); check("fix adds a file -> new Opus pass required", " failure:" in o and "adds/changes" in o, o)
-o = run([CHANGES, ("2026-11-05T01:50:00Z", DC[1]), QA], {f"{S}...{H}": AHEAD}); check("diff-check older than CHANGES ignored", " failure:" in o and "older" in o, o)
-o = run([CHANGES, ("2026-11-05T02:01:00Z", DC[1].replace(H, S)), QA], {f"{S}...{H}": AHEAD}); check("diff-check naming another head ignored", " failure:" in o and "different head" in o, o)
-o = run([CHANGES, ("2026-11-05T02:01:00Z", f"DIFF-CHECK (fix of Opus CHANGES, head {H})\nlooks fine to me\n"), QA], {f"{S}...{H}": AHEAD}); check("uncited diff-check fails verdict-lint", " failure:" in o and "verdict-lint" in o, o)
+o = run([CHANGES, DC, QA], AHEAD); check("#607 replay: CHANGES + diff-check (15 lines) + QA PASS at head -> success", " success:" in o and "diff-check" in o and "15 product" in o, o)
+o = run([CHANGES, QA], AHEAD); check("no diff-check -> still failure (gate was right to ask)", " failure:" in o and "no 'PASS (Opus final review" in o, o)
+big = per(dpatch(35))
+o = run([CHANGES, DC, QA], big); check("fix 35 lines -> new Opus pass required", " failure:" in o and ">30" in o, o)
+newf = per(dpatch(4), [f("inbound_email/newmod.py", 5, 0, "added", P(5, 0, "q"))])
+o = run([CHANGES, DC, QA], newf, PRFILES + [f("inbound_email/newmod.py", 5, 0, "added")]); check("fix adds a file -> new Opus pass required", " failure:" in o and "adds/changes" in o, o)
+o = run([CHANGES, ("2026-11-05T01:50:00Z", DC[1]), QA], AHEAD); check("diff-check older than CHANGES ignored", " failure:" in o and "older" in o, o)
+o = run([CHANGES, ("2026-11-05T02:01:00Z", DC[1].replace(H, S)), QA], AHEAD); check("diff-check naming another head ignored", " failure:" in o and "different head" in o, o)
+o = run([CHANGES, ("2026-11-05T02:01:00Z", f"DIFF-CHECK (fix of Opus CHANGES, head {H})\nlooks fine to me\n"), QA], AHEAD); check("uncited diff-check fails verdict-lint", " failure:" in o and "verdict-lint" in o, o)
 # diverged: Opus PASS at S carried forward by comparing the PR's own diff at both shas (rebase pulled base commits in)
 PASS_S = ("2026-11-05T01:57:00Z", f"PASS (Opus final review, head {S}) - inbound_email/intake.py:1\n\nVerdict: PASS\n- PASS ok inbound_email/intake.py:5\n")
 div = {"status": "diverged", "files": [f("other/base_change.py", 900, 0), f("inbound_email/intake.py", 214, 41)]}
