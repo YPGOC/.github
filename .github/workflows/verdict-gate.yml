@@ -62,12 +62,25 @@ jobs:
           HEADER = re.compile(r'^\W*(Verdict:|QA REPORT)', re.I)
           ANYVERDICT = re.compile(r'Verdict:|QA REPORT', re.I)
           def cited(l): return bool(FILE_LINE.search(l) or CMD_OUT.search(l) or TEST.search(l))
-          def lint(text):
-              errs, header, n = [], None, 0
+          BULLET = re.compile(r'^\s*(?:[-*\u2022]|\d+[.)])\s+\S')
+          NITS = re.compile(r'^\W*(?:nits?|non-blocking|not blocking|notes?|findings?|limits?|files opened|what.s good|what is good|noted)\b', re.I)
+          def lint(text, bullets=False, extra=0):
+              """bullets=True (Opus final, fleet-ops#86.r3): when the verdict has no `PASS:` claim lines of its own, its top-level bullets ARE the claims and each must carry a
+              citation (file:line, `cmd` -> output, test name); a bullet after any heading/label line (Nits, Findings, Notes, ...) or indented is exempt. A verdict with `PASS:` lines
+              is judged on those as before. extra = cited claims already found (the trailing citation of the `PASS (Opus ... review)` line)."""
+              errs, header, n, nits = [], None, extra, False
+              if bullets and any(PASS.search(l) and not HEADER.match(l) for l in text.splitlines()): bullets = False
               for i, line in enumerate(text.splitlines(), 1):
                   if HEADER.match(line):
                       if header is None: header = (i, line)
                       continue
+                  if bullets:
+                      if line.strip() and not BULLET.match(line) and NITS.match(line.lstrip("#*_> ")): nits = True
+                      elif line.startswith("#") or line.lstrip().startswith(("**", "__")): nits = False
+                      if BULLET.match(line) and not nits and not line.startswith((" ", "\t")):
+                          if cited(line): n += 1
+                          else: errs.append(f"line {i}: bullet without evidence")
+                          continue
                   if PASS.search(line):
                       if cited(line): n += 1
                       else: errs.append(f"line {i}: PASS without evidence")
@@ -96,14 +109,8 @@ jobs:
 
           def fix_delta(s, head, names):
               """(product_lines, added_or_migration_files) of the PR's OWN change between reviewed sha `s` and `head`.
-              compare `ahead`: the compare files (restricted to this PR's files). Anything else (diverged after a rebase / update-branch): per-file difference of the
-              PR's diff at both shas (compare BASE...s vs BASE...head), so base commits pulled in by the rebase do not count (fleet-ops#106)."""
-              c = api(f"repos/{REPO}/compare/{s}...{head}")
-              c = c[0] if isinstance(c, list) else c
-              if c.get("status") == "ahead":
-                  fl = [f for f in c.get("files", []) if f["filename"] in names]
-                  flag = [f["filename"] for f in fl if f.get("status") == "added" or MIG.search(f["filename"])]
-                  return product_lines(fl), flag
+              Always the per-file difference of the PR's diff at both shas (compare BASE...s vs BASE...head), never the raw S...head compare files: a master merge or
+              rebase pulls base commits in, ahead or diverged alike (fleet-ops#106, #86.r3)."""
               if not BASE: raise RuntimeError("no base ref for diverged compare")
               def per(sha):
                   cc = api(f"repos/{REPO}/compare/{BASE}...{sha}")
@@ -145,6 +152,21 @@ jobs:
                   if n <= 30: return True, f"fix since {s[:7]} is {n} product lines (<=30)"
                   return False, f"{n} product lines changed since reviewed {s[:7]} (>30): re-review"
               return False, "verdict names no sha of this PR"
+
+          OPUS_FINAL = re.compile(r'^[\s*_`>#]*PASS \(Opus final review', re.M)
+          OPUS_FINAL_CHANGES = re.compile(r'^[\s*_`>#]*(?:Verdict:\s*)?CHANGES \(Opus final review', re.M | re.I)
+          OPUS_DELTA = re.compile(r'^[\s*_`>#]*PASS \(Opus delta review', re.M)
+          def drop_pass_line(b):
+              """the verdict body for lint: everything except the `PASS (Opus ... review, head <sha>)` line itself (a leading 'Verdict: PASS' line is fine); that line's own
+              trailing citation (` - file:line`) is kept as a cited PASS line"""
+              out, extra = [], 0
+              for l in b.splitlines():
+                  if re.match(r'^[\s*_`>#]*PASS \(Opus (?:final|delta) review', l):
+                      rest = re.sub(r'^[\s*_`>#]*PASS \(Opus (?:final|delta) review[^)]*\)', '', l).strip(" -\u2014:")
+                      if rest and cited(rest): extra = 1
+                      continue
+                  out.append(l)
+              return "Verdict: PASS\n" + "\n".join(out), extra
 
           OPUS_CHANGES = re.compile(r'^[\s*_`>#]*Verdict:\s*CHANGES\s*\(Opus final review', re.I)
           DIFFCHECK = re.compile(r'^[\s*_`>#]*DIFF-CHECK \(fix of Opus CHANGES, head ([0-9a-f]{12,40})\)', re.I)
@@ -189,22 +211,29 @@ jobs:
               texts += [(r.get("submitted_at") or "", r.get("body") or "") for r in api(f"repos/{REPO}/pulls/{PR}/reviews")]
               texts.sort()
               # Opus final: latest comment that starts with PASS (Opus final review
-              opus = [b for _, b in texts if re.match(r'^[\s*_`>#]*PASS \(Opus final review', b)]
+              opus = [(t, b) for t, b in texts if OPUS_FINAL.search(b)]
+              delta = [(t, b) for t, b in texts if OPUS_DELTA.search(b)]
               why = f"{prod} product lines" + (", migration" if mig else "")
               dc_ok, dc_note = (False, None)
-              if not opus:
+              # candidates newest first: Opus final PASS; an Opus delta PASS counts only when the SAME PR has an earlier Opus final review (PASS or CHANGES) (its sha must be the head or covered by carry-forward)
+              # (an earlier Opus final review of either verdict counts: the normal flow is final CHANGES -> fix -> delta PASS; agents#249/#238)
+              fin_t = [t for t, b in texts if OPUS_FINAL.search(b) or OPUS_FINAL_CHANGES.search(b)]
+              cands = [(t, b, "final") for t, b in opus] + [(t, b, "delta") for t, b in delta if fin_t and fin_t[0] < t]
+              cands.sort(key=lambda x: x[0], reverse=True)
+              msg, fails = None, []
+              for _, b, kind in cands:
+                  ok, note = sha_ok(b, head, names)
+                  if not ok: fails.append(f"Opus {kind}: {note}"); continue
+                  body, extra = drop_pass_line(b)
+                  errs = lint(body, bullets=True, extra=extra)
+                  if errs: fails.append(f"Opus {kind} fails verdict-lint: {errs[0]}"); continue
+                  msg = f"Opus {kind} ok ({why})" + (f"; {note}" if note else ""); break
+              if msg is None and not cands:
                   dc_ok, dc_note = diffcheck_ok(texts, head, names)
                   if not dc_ok:
                       return finish("failure", f"no 'PASS (Opus final review, head <sha>)' comment ({why})" + (f"; {dc_note}" if dc_note else ""), head)
                   msg = f"{dc_note} ({why})"
-              else:
-                  b = opus[-1]
-                  ok, note = sha_ok(b.splitlines()[0] + "\n" + b, head, names)
-                  if not ok: return finish("failure", f"Opus final: {note}", head)
-                  body = "\n".join(b.splitlines()[1:])
-                  errs = lint("Verdict: PASS\n" + body)
-                  if errs: return finish("failure", f"Opus final fails verdict-lint: {errs[0]}", head)
-                  msg = f"Opus final ok ({why})" + (f"; {note}" if note else "")
+              if msg is None: return finish("failure", fails[0], head)
               if need_sonnet:
                   qa = [b for _, b in texts if re.search(r'QA REPORT', b) and re.search(r'^\W*Verdict:\W*PASS', b, re.M | re.I)]
                   if not qa:
