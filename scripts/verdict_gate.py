@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """verdict-gate (fleet-ops#86): sets commit status `verdict-gate` on a PR head.
 env: GH_TOKEN, REPO (owner/name), PR (number), DRY=1 (print, don't post)."""
-import json, os, re, subprocess, sys
+import collections, json, os, re, subprocess, sys
 
 REPO, PR = os.environ["REPO"], os.environ["PR"]
 DRY = os.environ.get("DRY") == "1"
@@ -77,15 +77,29 @@ def fix_delta(s, head, names):
         cc = api(f"repos/{REPO}/compare/{BASE}...{sha}")
         cc = cc[0] if isinstance(cc, list) else cc
         return {f["filename"]: f for f in cc.get("files", [])}
+    def lines(f):
+        """multiset of the +/- content lines of a file's patch; None = no patch (binary / too large): fail closed"""
+        pt = f.get("patch")
+        if pt is None: return None
+        return collections.Counter(l for l in pt.splitlines() if l[:1] in "+-" and not l.startswith(("+++", "---")))
     a, b = per(s), per(head)
     n, flag = 0, []
-    for fn, f in b.items():
+    BIG = 10 ** 6  # no patch to compare -> fail closed (counts as a huge change)
+    for fn in set(a) | set(b):
         if fn not in names or DOC.search(fn): continue
-        old = a.get(fn)
-        n += abs((f["additions"] + f["deletions"]) - ((old["additions"] + old["deletions"]) if old else 0))
-        if old is None and f.get("status") == "added" or MIG.search(fn) and (old is None or old["additions"] + old["deletions"] != f["additions"] + f["deletions"]): flag.append(fn)
-    for fn, f in a.items():  # a file the PR had at s and no longer has at head
-        if fn not in b and fn in names and not DOC.search(fn): n += f["additions"] + f["deletions"]
+        fa, fb = a.get(fn), b.get(fn)
+        if fa is None or fb is None:  # file appears / disappears between the two shas
+            f = fb or fa
+            n += f["additions"] + f["deletions"]
+            if fb is not None and (fb.get("status") == "added" or MIG.search(fn)): flag.append(fn)
+            continue
+        la, lb = lines(fa), lines(fb)
+        if la is None or lb is None:
+            if not (fa.get("sha") and fa.get("sha") == fb.get("sha")): n += BIG; flag.append(fn)  # identical blob sha = unchanged; otherwise unprovable
+            continue
+        d = sum(((la - lb) + (lb - la)).values())  # symmetric difference: an in-place edit with equal +/- counts still scores
+        n += d
+        if d and MIG.search(fn): flag.append(fn)
     return n, flag
 
 def sha_ok(text, head, base_files_names):
