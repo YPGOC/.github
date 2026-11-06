@@ -22,8 +22,20 @@ jobs:
         env:
           BODY: ${{ github.event.pull_request.body }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           fail=0
+          # fleet-ops#111: a re-run replays the ORIGINAL event payload, so a body/label fixed afterwards was never seen.
+          # Read the live PR; fall back to the payload values above only if the call fails.
+          if [ -n "${PR:-}" ] && live=$(gh api "repos/$REPO/pulls/$PR" --jq '[(.body // ""), ([.labels[].name] | join(","))] | @json' 2>/dev/null) \
+             && lb=$(printf '%s' "$live" | python3 -c 'import json,sys; b,l=json.load(sys.stdin); print(json.dumps(b)); print(l)' 2>/dev/null); then
+            BODY=$(printf '%s' "$lb" | head -n1 | python3 -c 'import json,sys; sys.stdout.write(json.loads(sys.stdin.read()))')
+            LABELS=$(printf '%s' "$lb" | tail -n1)
+          else
+            echo "::warning::could not fetch live PR; using event payload"
+          fi
           PART='^Part of #[0-9]+ — Run: ([A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+(-a|-p|\.A)[0-9]+[[:space:]]*$'
           part=0
           printf '%s' "$BODY" | grep -Eq "$PART" && part=1
