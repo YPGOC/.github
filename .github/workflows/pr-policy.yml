@@ -36,12 +36,12 @@ jobs:
           else
             echo "::warning::could not fetch live PR; using event payload"
           fi
-          PART='^Part of #[0-9]+ — Run: ([A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+(-a|-p|\.A)[0-9]+[[:space:]]*$'
+          PART='^Part of #[0-9]+ — Run: ([A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+(-[a-z]|\.A)[0-9]+[[:space:]]*$'
           part=0
           printf '%s' "$BODY" | grep -Eq "$PART" && part=1
           # cross-repo link: 'Part of [YPGOC/]<repo>#N' (issue lives in another org repo); needs its own 'Run:' line below
           XREPO='^Part of (YPGOC/)?[A-Za-z0-9_.-]+#[0-9]+([[:space:]].*)?$'
-          XRUN='^Part of (YPGOC/)?[A-Za-z0-9_.-]+#[0-9]+ — Run: ([A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+((-a|-p|\.A)[0-9]+)?[[:space:]]*$'
+          XRUN='^Part of (YPGOC/)?[A-Za-z0-9_.-]+#[0-9]+ — Run: ([A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+#[0-9]+\.r[0-9]+((-[a-z]|\.A)[0-9]+)?[[:space:]]*$'
           xrepo=0
           printf '%s' "$BODY" | grep -Eq "$XRUN" && part=1
           printf '%s' "$BODY" | grep -Eq "$XREPO" && xrepo=1

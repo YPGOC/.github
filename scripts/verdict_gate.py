@@ -136,7 +136,7 @@ def drop_pass_line(b):
         out.append(l)
     return "Verdict: PASS\n" + "\n".join(out), extra
 
-OPUS_CHANGES = re.compile(r'^[\s*_`>#]*Verdict:\s*CHANGES\s*\(Opus final review', re.I)
+OPUS_CHANGES = re.compile(r'^[\s*_`>#]*(?:Verdict:\s*)?CHANGES\s*\(Opus final review', re.I)
 DIFFCHECK = re.compile(r'^[\s*_`>#]*DIFF-CHECK \(fix of Opus CHANGES, head ([0-9a-f]{12,40})\)', re.I)
 
 def diffcheck_ok(texts, head, names):

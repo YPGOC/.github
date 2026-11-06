@@ -13,11 +13,14 @@ chk(){ BODY="$2" LABELS="${3:-}" bash /tmp/prp-run.sh >/dev/null 2>&1; r=$?
   if { [ "$1" = pass ] && [ $r = 0 ]; } || { [ "$1" = fail ] && [ $r != 0 ]; }; then echo ok; else echo "FAIL: $4"; bad=1; fi; }
 bad=0
 chk pass "Part of #27 — Run: agents#27.r1-a1$T" "" "part-of valid (-a form)"
+chk pass "Part of #27 — Run: agents#27.r1-b1$T" "" "other sub letter (-b1, agents#343)"
+chk pass "Part of #27 — Run: YPGOC/agents#27.r3-c12$T" "" "-c12 with owner prefix"
+chk fail "Part of #27 — Run: agents#27.r1-bb1$T" "" "two letters rejected"
 chk pass "Part of #27 — Run: agents#27.r1.A1$T" "" "deprecated .A alias"
 chk pass "Part of #27 — Run: agents#27.r1-p1$T" "" "planner -p form"
 chk pass "Part of #27 — Run: YPGOC/agents#27.r2-p12$T" "" "-p with owner prefix"
 chk fail "Part of #27 — Run: agents#27.r1-p$T" "" "-p without number"
-chk fail "Part of #27 — Run: agents#27.r1-x1$T" "" "unknown suffix"
+chk fail "Part of #27 — Run: agents#27.r1-1$T" "" "no sub letter"
 chk pass "Part of #27 — Run: YPGOC/agents#27.r1-a2$T" "" "owner prefix"
 chk fail "Part of #27$T" "" "part-of without Run id"
 chk fail "Part of #27 — Run: agents#27.r1$T" "" "part-of without -a<n>"

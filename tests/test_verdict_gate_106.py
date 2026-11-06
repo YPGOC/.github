@@ -40,6 +40,8 @@ def check(n, c, info=""):
     if not c: print("FAIL", n, "|", info); sys.exit(1)
     ok += 1; print("ok", n)
 o = run([CHANGES, DC, QA], AHEAD); check("#607 replay: CHANGES + diff-check (15 lines) + QA PASS at head -> success", " success:" in o and "diff-check" in o and "15 product" in o, o)
+CHANGES2 = ("2026-11-05T01:57:00Z", f"CHANGES (Opus final review, head {S})\nVerdict: CHANGES\n1. defect at inbound_email/intake.py:94\n")  # opus-review form (agents#343 item 5)
+o = run([CHANGES2, DC, QA], AHEAD); check("opus-review CHANGES form (header line 1, Verdict line 2) + diff-check -> success", " success:" in o and "diff-check" in o and "15 product" in o, o)
 o = run([CHANGES, QA], AHEAD); check("no diff-check -> still failure (gate was right to ask)", " failure:" in o and "no 'PASS (Opus final review" in o, o)
 big = per(dpatch(35))
 o = run([CHANGES, DC, QA], big); check("fix 35 lines -> new Opus pass required", " failure:" in o and ">30" in o, o)
